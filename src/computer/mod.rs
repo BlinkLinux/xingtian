@@ -6,3 +6,4 @@ pub mod environment;
 pub mod group;
 pub mod language;
 pub mod uptime;
+pub mod vendor;
