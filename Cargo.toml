@@ -13,4 +13,5 @@ rust-version = "1.62.0"
 publish = false
 
 [dependencies]
+log = "0.4.20"
 thiserror = "1.0.47"

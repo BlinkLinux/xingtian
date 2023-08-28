@@ -11,5 +11,6 @@
 )]
 #![allow(clippy::module_name_repetitions)]
 
+pub mod base;
 pub mod computer;
 pub mod error;
