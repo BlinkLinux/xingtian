@@ -1,6 +1,11 @@
 [package]
 name = "xingtian"
 version = "0.1.0"
+authors = ["Xu Shaohua <shaohua@biofan.org>"]
+description = "System info"
+homepage = "https://github.com/BlinkList/xingtian"
+repository = "https://github.com/BlinkList/xingtian"
+documentation = "https://docs.rs/xingtian"
 license = "GPL-3.0"
 edition = "2021"
 readme = "README.md"
