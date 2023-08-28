@@ -1,7 +1,9 @@
 [package]
 name = "xingtian"
 version = "0.1.0"
+license = "GPL-3.0"
 edition = "2021"
+readme = "README.md"
 rust-version = "1.62.0"
 publish = false
 
