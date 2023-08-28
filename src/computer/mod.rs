@@ -5,5 +5,6 @@
 pub mod environment;
 pub mod group;
 pub mod language;
+pub mod module;
 pub mod uptime;
 pub mod vendor;

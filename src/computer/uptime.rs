@@ -13,7 +13,7 @@ use crate::error::Error;
 #[allow(clippy::cast_sign_loss)]
 pub fn get_uptime() -> Result<Duration, Error> {
     const FILE: &str = "/proc/uptime";
-    let content = fs::read_to_string(FILE)?;
+    let content = fs::read_to_string(FILE).map_err(|err| Error::IoError(FILE, err))?;
 
     let uptime_str = content
         .split(' ')

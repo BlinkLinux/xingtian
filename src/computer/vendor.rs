@@ -148,11 +148,11 @@ mod tests {
     fn test_get_url() {
         assert_eq!(
             get_url("Realtek Semiconductor Co., Ltd. RTL8821CE"),
-            Some("www.realtek.com.tw")
+            Some("https://www.realtek.com")
         );
         assert_eq!(
             get_url("Hewlett-Packard Company RTL8821CE"),
-            Some("www.hp.com")
+            Some("https://www.hp.com")
         );
     }
 }
