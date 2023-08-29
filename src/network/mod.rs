@@ -3,5 +3,6 @@
 // in the LICENSE file.
 
 pub mod arp_table;
+pub mod dev;
 pub mod dns_server;
 pub mod routing_table;
