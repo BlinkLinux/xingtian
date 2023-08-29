@@ -77,19 +77,28 @@ pub fn get_list() -> Result<Vec<Module>, Error> {
     Ok(modules)
 }
 
-#[must_use]
-pub fn get_detail(_name: &str) -> ModuleDetail {
+/// # Errors
+/// Returns error if module not found or failed to read ko file.
+pub fn get_detail(_name: &str) -> Result<ModuleDetail, Error> {
     todo!()
 }
 
 #[cfg(test)]
 mod tests {
-    use super::get_list;
+    use super::{get_detail, get_list};
 
     #[test]
     fn test_get_list() {
         let module_list = get_list();
         assert!(module_list.is_ok());
         assert!(module_list.unwrap().len() > 10);
+    }
+
+    #[test]
+    fn test_get_detail() {
+        let name = "stp";
+        let module_detail = get_detail(name);
+        assert!(module_detail.is_ok());
+        assert_eq!(module_detail.unwrap().dependencies, ["llc"]);
     }
 }

@@ -13,4 +13,6 @@
 
 pub mod base;
 pub mod computer;
+pub mod device;
 pub mod error;
+pub mod network;

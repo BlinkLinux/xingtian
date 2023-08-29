@@ -12,4 +12,13 @@ pub enum Error {
 
     #[error("Failed to parse `{0}`, reason: `{1}`")]
     ParseFile(&'static str, &'static str),
+
+    #[error("Failed to find `{0}`")]
+    NotFound(String),
+
+    #[error("Failed to retrieve dns `{0}`, reason: `{1:?}`")]
+    DnsError(String, dns_lookup::LookupError),
+
+    #[error("Failed to parse address")]
+    AddrParseError(#[from] std::net::AddrParseError),
 }
