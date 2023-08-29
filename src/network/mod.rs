@@ -3,3 +3,4 @@
 // in the LICENSE file.
 
 pub mod dns_server;
+pub mod routing_table;
