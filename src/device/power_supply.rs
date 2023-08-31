@@ -203,9 +203,12 @@ pub fn get_list() -> Result<Vec<PowerSupply>, Error> {
     for entry in fs::read_dir(DIR).map_err(|err| Error::IoError(DIR, err))? {
         let entry = entry.map_err(|err| Error::IoError(DIR, err))?;
         let path = entry.path();
-        if path.is_dir() && path.starts_with("BAT") {
-            let battery = read_detail(&path)?;
-            list.push(battery);
+        if path.is_dir() {
+            let filename = path.file_name().unwrap_or_default();
+            if filename.is_ascii() && filename.to_str().unwrap_or_default().starts_with("BAT") {
+                let battery = read_detail(&path)?;
+                list.push(battery);
+            }
         }
     }
 
@@ -222,7 +225,7 @@ pub fn read_detail(dir: &Path) -> Result<PowerSupply, Error> {
     let mut ps = PowerSupply::default();
 
     for line in uevent.lines() {
-        if line.starts_with("POWER_SUPPLY_") {
+        if !line.starts_with("POWER_SUPPLY_") {
             log::warn!("Invalid power supply attr: {line}");
             continue;
         }
@@ -235,7 +238,7 @@ pub fn read_detail(dir: &Path) -> Result<PowerSupply, Error> {
             continue;
         };
         let value = if let Some(value) = parts.next() {
-            value
+            value.trim()
         } else {
             log::warn!("Invalid power supply attr value: {line}");
             continue;
@@ -297,6 +300,7 @@ pub fn read_detail(dir: &Path) -> Result<PowerSupply, Error> {
 
     if let Ok(alarm_str) = fs::read_to_string(dir.join("alarm")) {
         ps.alarm = alarm_str
+            .trim()
             .parse()
             .map_err(|_err| Error::ParseFile("power_supply/alarm", ""))?;
     } else {
@@ -305,6 +309,7 @@ pub fn read_detail(dir: &Path) -> Result<PowerSupply, Error> {
 
     if let Ok(s) = fs::read_to_string(dir.join("charge_control_end_threshold")) {
         ps.charge_control_end_threshold = s
+            .trim()
             .parse()
             .map_err(|_err| Error::ParseFile("power_supply/charge_control_end_threshold", ""))?;
     } else {
@@ -313,6 +318,7 @@ pub fn read_detail(dir: &Path) -> Result<PowerSupply, Error> {
 
     if let Ok(s) = fs::read_to_string(dir.join("charge_control_start_threshold")) {
         ps.charge_control_start_threshold = s
+            .trim()
             .parse()
             .map_err(|_err| Error::ParseFile("power_supply/charge_control_start_threshold", ""))?;
     } else {
@@ -320,4 +326,15 @@ pub fn read_detail(dir: &Path) -> Result<PowerSupply, Error> {
     }
 
     Ok(ps)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::get_list;
+
+    #[test]
+    fn test_get_list() {
+        let list = get_list();
+        assert!(list.is_ok());
+    }
 }
