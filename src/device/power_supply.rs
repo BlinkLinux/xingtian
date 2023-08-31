@@ -7,7 +7,7 @@ use std::path::Path;
 
 use crate::error::Error;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct PowerSupply {
     pub name: String,
     pub manufacturer: String,
@@ -56,6 +56,12 @@ pub enum Type {
     Wireless,
 }
 
+impl Default for Type {
+    fn default() -> Self {
+        Self::Unknown
+    }
+}
+
 impl From<&str> for Type {
     fn from(s: &str) -> Self {
         match s {
@@ -92,6 +98,12 @@ pub enum Status {
     Full,
 }
 
+impl Default for Status {
+    fn default() -> Self {
+        Self::Unknown
+    }
+}
+
 impl From<&str> for Status {
     fn from(s: &str) -> Self {
         match s {
@@ -120,6 +132,12 @@ pub enum Technology {
     LiFe,
     NiCd,
     LiMn,
+}
+
+impl Default for Technology {
+    fn default() -> Self {
+        Self::Unknown
+    }
 }
 
 impl From<&str> for Technology {
@@ -151,6 +169,12 @@ pub enum CapacityLevel {
     Normal,
     High,
     Full,
+}
+
+impl Default for CapacityLevel {
+    fn default() -> Self {
+        Self::Unknown
+    }
 }
 
 impl From<&str> for CapacityLevel {
@@ -190,6 +214,110 @@ pub fn get_list() -> Result<Vec<PowerSupply>, Error> {
 
 /// # Errors
 /// Returns error if failed to parse power supply directory.
-pub fn read_detail<P: AsRef<Path>>(_p: P) -> Result<PowerSupply, Error> {
-    todo!()
+pub fn read_detail(dir: &Path) -> Result<PowerSupply, Error> {
+    const FILE: &str = "power_supply/uevent";
+
+    let uevent = fs::read_to_string(dir.join("uevent")).map_err(|err| Error::IoError(FILE, err))?;
+
+    let mut ps = PowerSupply::default();
+
+    for line in uevent.lines() {
+        if line.starts_with("POWER_SUPPLY_") {
+            log::warn!("Invalid power supply attr: {line}");
+            continue;
+        }
+
+        let mut parts = line["POWER_SUPPLY_".len()..].split('=');
+        let key = if let Some(key) = parts.next() {
+            key
+        } else {
+            log::warn!("Invalid power supply attr key: {line}");
+            continue;
+        };
+        let value = if let Some(value) = parts.next() {
+            value
+        } else {
+            log::warn!("Invalid power supply attr value: {line}");
+            continue;
+        };
+
+        match key {
+            "NAME" => ps.name = value.to_owned(),
+            "TYPE" => ps.type_ = value.into(),
+            "STATUS" => ps.status = value.into(),
+            "PRESENT" => ps.present = value == "1",
+            "TECHNOLOGY" => ps.technology = value.into(),
+            "CYCLE_COUNT" => {
+                ps.cycle_count = value
+                    .parse()
+                    .map_err(|_err| Error::ParseFile(FILE, "Failed to parse cycle count"))?;
+            }
+            "VOLTAGE_MIN_DESIGN" => {
+                ps.voltage_min_design = value
+                    .parse()
+                    .map_err(|_err| Error::ParseFile(FILE, "Failed to parse voltage_min_design"))?;
+            }
+            "VOLTAGE_NOW" => {
+                ps.voltage_now = value
+                    .parse()
+                    .map_err(|_err| Error::ParseFile(FILE, "Failed to parse voltage_now"))?;
+            }
+            "CURRENT_NOW" => {
+                ps.current_now = value
+                    .parse()
+                    .map_err(|_err| Error::ParseFile(FILE, "Failed to parse current_now"))?;
+            }
+            "CHARGE_FULL_DESIGN" => {
+                ps.charge_full_design = value
+                    .parse()
+                    .map_err(|_err| Error::ParseFile(FILE, "Failed to parse charge_full_design"))?;
+            }
+            "CHARGE_FULL" => {
+                ps.charge_full = value
+                    .parse()
+                    .map_err(|_err| Error::ParseFile(FILE, "Failed to parse charge_full"))?;
+            }
+            "CHARGE_NOW" => {
+                ps.charge_now = value
+                    .parse()
+                    .map_err(|_err| Error::ParseFile(FILE, "Failed to parse charge_now"))?;
+            }
+            "CAPACITY" => {
+                ps.capacity = value
+                    .parse()
+                    .map_err(|_err| Error::ParseFile(FILE, "Failed to parse capacity"))?;
+            }
+            "CAPACITY_LEVEL" => ps.capacity_level = value.into(),
+            "MODEL_NAME" => ps.model_name = value.to_owned(),
+            "MANUFACTURER" => ps.manufacturer = value.to_owned(),
+            "SERIAL_NUMBER" => ps.serial_number = value.to_owned(),
+            _key => log::warn!("Invalid power supply attr key: {line}"),
+        }
+    }
+
+    if let Ok(alarm_str) = fs::read_to_string(dir.join("alarm")) {
+        ps.alarm = alarm_str
+            .parse()
+            .map_err(|_err| Error::ParseFile("power_supply/alarm", ""))?;
+    } else {
+        log::warn!("Failed to read power_supply/alarm file");
+    }
+
+    if let Ok(s) = fs::read_to_string(dir.join("charge_control_end_threshold")) {
+        ps.charge_control_end_threshold = s
+            .parse()
+            .map_err(|_err| Error::ParseFile("power_supply/charge_control_end_threshold", ""))?;
+    } else {
+        log::warn!("Failed to read power_supply/charge_control_end_threshold file");
+    }
+
+    if let Ok(s) = fs::read_to_string(dir.join("charge_control_start_threshold")) {
+        ps.charge_control_start_threshold = s
+            .parse()
+            .map_err(|_err| Error::ParseFile("power_supply/charge_control_start_threshold", ""))?;
+    } else {
+        log::warn!("Failed to read power_supply/charge_control_start_threshold file");
+    }
+
+    Ok(ps)
 }
