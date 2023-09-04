@@ -4,3 +4,4 @@
 
 pub mod power_supply;
 pub mod sensor;
+pub mod usb;

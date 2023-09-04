@@ -10,6 +10,9 @@ pub enum Error {
     #[error("IoError to read file: `{0}`, reason: `{1}`")]
     IoError(&'static str, io::Error),
 
+    #[error("IoErrorDetail to read: `{0}`, reason: `{1}`")]
+    IoErrorDetail(String, io::Error),
+
     #[error("Failed to parse `{0}`, reason: `{1}`")]
     ParseFile(&'static str, &'static str),
 
