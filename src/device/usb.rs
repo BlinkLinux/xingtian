@@ -16,6 +16,14 @@ pub struct UsbDev {
     pub speed: String,
     pub version: String,
 
+    // These attributes are read from sysfs uevent.
+    pub major: String,
+    pub minor: String,
+    pub dev_name: String,
+    pub dev_type: String,
+    pub bus_num: String,
+    pub dev_num: String,
+
     // These attributes are read from udev.
     pub bus: String,
     pub model: String,
@@ -86,18 +94,36 @@ pub fn scan_usb_event(dir: &Path) -> Result<UsbDev, Error> {
 
     let uevent_content =
         fs::read_to_string(dir.join("uevent")).map_err(|err| Error::IoError("usb uevent", err))?;
-    let mut major = String::new();
-    let mut minor = String::new();
     for line in uevent_content.lines() {
-        if let Some(m) = line.strip_prefix("MAJOR=") {
-            major = m.to_owned();
-        } else if let Some(m) = line.strip_prefix("MINOR=") {
-            minor = m.to_owned();
-            break;
+        if !line.contains('=') {
+            continue;
+        }
+        let mut parts = line.split('=');
+        let key = if let Some(key) = parts.next() {
+            key
+        } else {
+            log::warn!("Invalid usb uevent attr key: {line}");
+            continue;
+        };
+        let value = if let Some(value) = parts.next() {
+            value.trim()
+        } else {
+            log::warn!("Invalid usb uevent attr value: {line}");
+            continue;
+        };
+
+        match key {
+            "MAJOR" => dev.major = value.to_owned(),
+            "MINOR" => dev.minor = value.to_owned(),
+            "DEVNAME" => dev.dev_name = value.to_owned(),
+            "DEVTYPE" => dev.dev_type = value.to_owned(),
+            "BUSNUM" => dev.bus_num = value.to_owned(),
+            "DEVNUM" => dev.dev_num = value.to_owned(),
+            _s => (),
         }
     }
 
-    let path = format!("/run/udev/data/c{major}:{minor}");
+    let path = format!("/run/udev/data/c{}:{}", dev.major, dev.minor);
     let udev_content = fs::read_to_string(&path).map_err(|err| Error::IoErrorDetail(path, err))?;
 
     for line in udev_content.lines() {
