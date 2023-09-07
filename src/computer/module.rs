@@ -79,6 +79,8 @@ pub fn get_list() -> Result<Vec<Module>, Error> {
 
 /// # Errors
 /// Returns error if module not found or failed to read ko file.
+///
+/// # Panics
 pub fn get_detail(_name: &str) -> Result<ModuleDetail, Error> {
     todo!()
 }

@@ -12,6 +12,8 @@ pub struct Group {
 }
 
 /// # Errors
+///
+/// # Panics
 pub fn get_group_list() -> Result<Vec<Group>, Error> {
     todo!()
 }
