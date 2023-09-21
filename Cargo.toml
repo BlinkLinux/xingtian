@@ -13,9 +13,9 @@ rust-version = "1.62.0"
 publish = false
 
 [dependencies]
-dns-lookup = "2.0.2"
+dns-lookup = "2.0.3"
 kmod = "0.5.0"
 log = "0.4.20"
 nc = "0.8.17"
-thiserror = "1.0.47"
+thiserror = "1.0.48"
 utmp-rs = "0.3.0"
